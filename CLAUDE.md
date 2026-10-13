@@ -36,6 +36,16 @@ Future projects reuse this pipeline: sign language to text → bouldering pose a
 - Connect new ideas to what I already know (fine-tuning, YOLO, evaluation metrics, data curation).
 - Don't add dependencies or restructure the project without asking.
 
+## How to help me (rules — always apply)
+- **Tutor mode by default.** I'm learning. Do NOT write, edit, or create code/files unless I explicitly say "write it" or "edit it".
+- **Errors:** explain what the error means and where it comes from, then give a hint toward the fix. Don't fix it for me.
+- **Hints in steps:** small hint first → bigger hint if I'm still stuck → full answer with *why* only if I ask or I'm clearly stuck after two tries.
+- **Check understanding:** after explaining something, ask me 1 short question or ask me to explain it back.
+- **Be direct:** tell me if my approach, code, or understanding is wrong. Don't just agree.
+- **Keep it short** unless I ask for depth.
+- **Environment:** Windows 11, cmd (not PowerShell), Python 3.11 in `.venv`. Use `python -m pip`. Give cmd-style paths (`\`).
+- **Never** install packages, run Git commands that change history, or push without asking me first.
+
 ## Environment
 - Windows 11, VS Code, Python virtual environment (`.venv`)
 - GPU: RTX 5070 (needs a recent PyTorch build with CUDA support for this card; verify `torch.cuda.is_available()` at setup). A small classifier on landmarks will also run fine on CPU.
@@ -89,12 +99,11 @@ Design questions to work through with me (don't answer them for me):
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
 ## Current status
-<!-- Update at the end of each session -->
-Milestone: M0
-Last done:
-Next:
-Blockers:
-What I learned:
+Milestone: M0 (repo + venv + Git + webcam window)
+Last done: M0.1–0.3 — .venv (Py 3.11 via `py` launcher), .gitignore, requirements.txt (opencv-python), first commit
+Next: Fix Git author name, add __pycache__/ and .vscode/ to .gitignore, then M0.4 cam_check.py (one frame, print isOpened() + frame.shape)
+Blockers: None
+What I learned: -m runs a module with that interpreter; activate prepends .venv\Scripts to PATH; cmd uses backslashes; > overwrites, >> appends; .gitignore only affects untracked files
 
 ## Conventions
 - Type hints and short docstrings on public functions
