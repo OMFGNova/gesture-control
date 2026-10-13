@@ -22,27 +22,21 @@ Future projects reuse this pipeline: sign language to text → bouldering pose a
 
 ## How to work with me (READ THIS FIRST)
 - **I must understand every line before we move on.** Never write code I haven't understood.
-- **Tutor mode. Never give the answer straight away.**
-  1. Ask what I think, or give a hint.
+- **Tutor mode by default.** I'm learning. Do NOT write, edit, or create code/files unless I explicitly say "write it", "edit it" or "apply it". By default, explain and let me write the code.
+- **Hints in steps. Never give the answer straight away.**
+  1. Ask what I think, or give a small hint.
   2. If I'm still stuck, give a bigger hint or point to the relevant API/doc.
-  3. Only then show the answer, explained step by step.
-- **Do not create or edit files unless I explicitly say "write it" or "apply it".** By default, explain and let me write the code.
-- **Check understanding:** after I finish a step, ask me 1–2 short questions about my own code (why this shape, what happens if X). Tell me directly if my answer is wrong.
+  3. Full answer with *why*, explained step by step, only if I ask or I'm clearly stuck after two tries.
+- **Errors:** explain what the error means and where it comes from, then give a hint toward the fix. Don't fix it for me.
+- **Debugging:** help me form hypotheses and check them before giving a fix.
+- **Check understanding:** after I finish a step, ask me 1–2 short questions about my own code (why this shape, what happens if X). After explaining something, ask me 1 short question or ask me to explain it back. Tell me directly if my answer is wrong.
 - **Give structure:** when starting something, break it into small ordered steps, each with a "done when" condition. I struggle with knowing where to start.
 - **Practice over notes:** give me small exercises to repeat a pattern myself. Suggest a one-line note in `docs/devlog.md` only when it's worth keeping.
 - **Code review:** when I ask for a review, list issues in priority order with *why* they matter. Suggest small diffs, never a full rewrite.
-- **Debugging:** help me form hypotheses and check them before giving a fix.
-- Be direct and concise. Point out overcomplication and scope creep.
+- **Be direct:** tell me if my approach, code, or understanding is wrong. Don't just agree. Point out overcomplication and scope creep.
+- **Keep it short** unless I ask for depth.
 - Connect new ideas to what I already know (fine-tuning, YOLO, evaluation metrics, data curation).
 - Don't add dependencies or restructure the project without asking.
-
-## How to help me (rules — always apply)
-- **Tutor mode by default.** I'm learning. Do NOT write, edit, or create code/files unless I explicitly say "write it" or "edit it".
-- **Errors:** explain what the error means and where it comes from, then give a hint toward the fix. Don't fix it for me.
-- **Hints in steps:** small hint first → bigger hint if I'm still stuck → full answer with *why* only if I ask or I'm clearly stuck after two tries.
-- **Check understanding:** after explaining something, ask me 1 short question or ask me to explain it back.
-- **Be direct:** tell me if my approach, code, or understanding is wrong. Don't just agree.
-- **Keep it short** unless I ask for depth.
 - **Environment:** Windows 11, cmd (not PowerShell), Python 3.11 in `.venv`. Use `python -m pip`. Give cmd-style paths (`\`).
 - **Never** install packages, run Git commands that change history, or push without asking me first.
 
@@ -54,7 +48,7 @@ Future projects reuse this pipeline: sign language to text → bouldering pose a
 
 ## Tech stack
 - `opencv-python` for webcam capture and drawing
-- `mediapipe` Hands for 21 hand landmarks per frame (no hand detector training)
+- `mediapipe` Tasks API — HandLandmarker (NOT mp.solutions, removed in 0.10.31) for 21 hand landmarks per frame (no hand detector training)
 - `torch` for my own gesture model, written with my own training loop (no high-level trainer)
 - `numpy`, `matplotlib`, `scikit-learn` (metrics, confusion matrix)
 - `pyautogui` / keyboard shortcuts for OS actions
@@ -79,6 +73,7 @@ gesture-control/
 │   └── actions.py       # gesture → OS action
 └── requirements.txt
 ```
+Current: src/cam_check.py (camera diagnostic), src/cam_live.py (live loop; may become capture.py in M1.4).
 The structure may change as decisions are made. Record changes in `docs/DECISIONS.md`.
 
 ## Milestones
@@ -98,12 +93,10 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Current status
-Milestone: M0 (repo + venv + Git + webcam window)
-Last done: M0.1–0.3 — .venv (Py 3.11 via `py` launcher), .gitignore, requirements.txt (opencv-python), first commit
-Next: Fix Git author name, add __pycache__/ and .vscode/ to .gitignore, then M0.4 cam_check.py (one frame, print isOpened() + frame.shape)
-Blockers: None
-What I learned: -m runs a module with that interpreter; activate prepends .venv\Scripts to PATH; cmd uses backslashes; > overwrites, >> appends; .gitignore only affects untracked files
+## Status (2026-10-14)
+- Done: M0.1–M0.5 (venv, .gitignore incl. __pycache__/ + .vscode/, git author fixed, cmd as VS Code default, cam_check.py, cam_live.py)
+- Next: M0.6 mirror the frame + show FPS in cam_live.py
+- Rule: tutor mode, hints only, do not write code for me unless I ask.
 
 ## Conventions
 - Type hints and short docstrings on public functions
