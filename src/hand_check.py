@@ -1,10 +1,8 @@
 import cv2
 import mediapipe as mp
 
-# Path to model 
 model_path = r"./models/hand_landmarker.task"
 
-# Grab single image from webcam
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     raise SystemExit("Camera not open")
