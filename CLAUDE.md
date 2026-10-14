@@ -93,10 +93,10 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Status (2026-10-14)
-- Done: M0.1–M0.5 (venv, .gitignore incl. __pycache__/ + .vscode/, git author fixed, cmd as VS Code default, cam_check.py, cam_live.py)
-- Next: M0.6 mirror the frame + show FPS in cam_live.py
-- Rule: tutor mode, hints only, do not write code for me unless I ask.
+## Status (2026-10-15)
+- M0 done; M1.1–M1.4 done: live numbered hand landmarks in cam_live.py (VIDEO mode, FPS shown).
+- Env: Windows 11, cmd, Python 3.11 venv; MediaPipe Tasks API; models/ gitignored.
+- Next: num_hands=1, time detection, pinch distance (4↔8) + scale normalisation.
 
 ## Conventions
 - Type hints and short docstrings on public functions

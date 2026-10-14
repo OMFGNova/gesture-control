@@ -69,3 +69,47 @@
 - Rename branch `master` → `main` before adding the GitHub remote?
 - Pin versions in `requirements.txt` (e.g. `opencv-python==x.y.z`)?
 - IMAGE vs VIDEO running mode for HandLandmarker in the live loop?
+
+## 2026-10-15 — M0.6 → M1.4: Mirror/FPS, MediaPipe setup, live landmarks
+
+### Decided
+- **Mirror once, right after `cap.read()`** (`cv2.flip(frame, 1)`) and use the flipped frame for everything after, so on-screen direction = code direction.
+- **FPS from the lap time between iterations** (`now - prev_time` with `time.perf_counter()`), so it covers the whole loop, including detection.
+- **Dependencies:** hand-written `requirements.txt` listing direct imports only, pinned with `==` (`opencv-contrib-python`, `mediapipe`). Only one OpenCV package installed.
+- **Model weights gitignored** (`models/`), with a download link in the README, so large future weights won't bloat the repo history.
+- **Live loop uses VIDEO running mode** (`detect_for_video`, synchronous). Landmarker created once, before the loop. Timestamp = `int(now * 1000)`.
+- **`num_hands=1` for gesture control** (2+ hands → conflicting commands, bystanders triggering actions, wasted FPS). Multi-hand only as a future demo option.
+
+### Rejected
+- `pip freeze` → dumps sub-dependencies and OS-specific pins.
+- Unpinned requirements → future installs may break the API.
+- Committing the `.task` file → acceptable at ~7 MB, but the habit matters for bigger models later.
+- LIVE_STREAM mode → async callback adds complexity we don't need yet.
+- Colab `draw_landmarks_on_image` snippet → no index labels, and `cv2_imshow` is Colab-only. Wrote my own drawing loop.
+- Two OpenCV packages → both write to the same `cv2` folder and overwrite each other.
+
+### Concepts learned
+- `frame.shape` = (height, width, channels). OpenCV is BGR, and MediaPipe needs RGB. Skipping the conversion fails *silently* (worse accuracy, no error).
+- `waitKey(1)` keeps the loop running and refreshes the window. `waitKey(0)` blocks until a keypress.
+- `perf_counter()` only means something as a *difference* between two calls.
+- `hand_landmarks` = list of hands → each a list of 21 points. x, y are normalised 0–1 (like YOLO labels), y=0 is the **top**, and z is rough depth relative to the wrist (noisy). `hand_world_landmarks` = metres, scale-invariant.
+- Landmark indices 0–20 (0 wrist, 4 thumb tip, 8 index tip). Don't renumber.
+- VIDEO mode uses the timestamp for **tracking**: it reuses the previous frame's hand location to skip the palm detector.
+- Two-stage cost: detector ≈ fixed per frame, and the per-detection stage scales with the number of hands.
+- Git: commits are local until a remote is added. `git rm --cached` untracks a file. Pushed files stay in history.
+
+### Baselines
+- No detection: ~30 FPS (readings up to 50 are jitter). Webcam caps at ~30.
+- 1–2 hands: ~30 FPS (camera-bound, so this doesn't show the detection cost).
+- 4 hands: ~20 FPS (~50 ms/frame, now detection-bound).
+
+### Next tasks
+- [ ] Set `num_hands=1` in `cam_live.py`. **Done when:** only one hand is drawn even with two in view.
+- [ ] Time `detect_for_video` alone. **Done when:** the average detection ms is printed or shown, and noted here.
+- [ ] Compute thumb–index distance (landmarks 4 & 8) and show it live. **Done when:** the number visibly drops when pinching.
+- [ ] Make the pinch distance scale-invariant. **Done when:** the value stays roughly constant when moving an open hand closer to or further from the camera.
+
+### Open questions
+- How to normalise pinch distance: divide by a hand-size reference (e.g. wrist→middle-finger base), or use world landmarks?
+- Pinch threshold: fixed number, or calibrated per user?
+- Commit or gitignore `CLAUDE.md`? (Review its content as a recruiter would.)
