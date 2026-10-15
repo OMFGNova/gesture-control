@@ -93,10 +93,9 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Status (2026-10-15)
-- M0 done; M1.1–M1.4 done: live numbered hand landmarks in cam_live.py (VIDEO mode, FPS shown).
-- Env: Windows 11, cmd, Python 3.11 venv; MediaPipe Tasks API; models/ gitignored.
-- Next: num_hands=1, time detection, pinch distance (4↔8) + scale normalisation.
+## Status
+**Status (2026-10-15):** M0, M1.1–M1.4, M2 (pinch detection) done. cam_live.py shows FPS, detect ms (~6), thumb–index line, normalised pinch ratio (÷ palm 0→17), and PINCH at ratio < 0.4. Known issues: flicker at threshold (fix: hysteresis), rotation distorts ratio.
+**Next:** hysteresis → refactor into pinch_ratio() → M3 zoom control.
 
 ## Conventions
 - Type hints and short docstrings on public functions

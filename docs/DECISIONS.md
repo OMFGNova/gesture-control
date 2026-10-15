@@ -113,3 +113,38 @@
 - How to normalise pinch distance: divide by a hand-size reference (e.g. wrist→middle-finger base), or use world landmarks?
 - Pinch threshold: fixed number, or calibrated per user?
 - Commit or gitignore `CLAUDE.md`? (Review its content as a recruiter would.)
+
+## 2026-10-15 — M1.5 → M2: Scale-invariant pinch detection
+
+### Decided
+- `num_hands=1`: only one hand is needed for control; fewer outputs to handle.
+- Pinch = thumb tip (4) ↔ index tip (8) pixel distance **divided by palm length** (wrist 0 ↔ pinky MCP 17). Measured ratio: open ≈ 1.6 (near and far), pinched ≈ 0.15–0.19.
+- `PINCH_THRESHOLD = 0.4` (named constant). Sits in the gap with margin against both missed and false pinches.
+- Guard: if palm_len < 10 px, skip the ratio (show `--`) instead of faking a value.
+
+### Rejected
+- Raw pixel distance: breaks when the hand moves nearer or farther from the camera.
+- `palm_len = 1` fallback: produces a fake "open" ratio.
+- World landmarks: not rejected, just not tested yet (see open questions).
+
+### Measurements
+- `detect_for_video`: ~6 ms/frame. Loop runs ~30 FPS, so it's camera-bound (cap.read() blocks), not compute-bound.
+
+### Concepts learned
+- VIDEO mode tracks the hand: the palm detector runs only when there's no hand; otherwise only the landmark model runs on a crop. Timestamps must strictly increase.
+- `time.perf_counter()` for timing (monotonic, high-res).
+- Keep floats for maths, `int()` only for drawing/display.
+- Bug pattern (hit 3×): variable assigned in one branch, used outside it → crash or stale value.
+- Foreshortening: rotating the hand shrinks 2D palm length and distorts the ratio.
+- `cv2.putText` origin = bottom-left of the text. Centring: x = W/2 − tw/2, y = H/2 + th/2.
+- `git commit -am` stages tracked, modified files only; new files need `git add`.
+
+### Next tasks
+- [ ] Hysteresis: two thresholds (enter pinch < T_on, exit pinch > T_off, T_on < T_off) with a `pinching` state variable. Done when: holding fingers near the threshold no longer flickers.
+- [ ] Refactor: move pinch logic into `pinch_ratio(landmarks, w, h)` that returns a float or None. Done when: the main loop calls one function and behaviour is unchanged.
+- [ ] (Optional) World landmarks comparison: show the 4↔8 world distance (cm) next to the ratio; record open/pinched × near/far. Done when: table filled and a choice written here.
+- [ ] M3 start: map pinch in/out to zoom. Done when: changing pinch distance zooms a document.
+
+### Open questions
+- Is rotation (foreshortening) a real problem in use? If so: max of two palm lengths (0→17, 0→9) or world landmarks?
+- For zoom: trigger on pinch state (on/off) or on change in ratio over time?
