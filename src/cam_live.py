@@ -3,18 +3,35 @@ import time
 import mediapipe as mp
 import math
 
+# HELPER FUNCTIONS
 def to_px(landmark, width, height):
 
     x = landmark.x * width
     y = landmark.y * height
 
-    return x, y
+    return (x, y)
 
+def pinch_ratio(landmarks, width, height):
+    thumb = to_px(landmarks[4], width, height)
+    index =to_px(landmarks[8], width, height)
+
+    wrist = to_px(landmarks[0], width, height)
+    bottom_pinky = to_px(landmarks[17], width, height)
+
+    palm_len = math.hypot(bottom_pinky[0] - wrist[0], bottom_pinky[1] - wrist[1])
+
+    if palm_len < 10:
+        return None
+    else:
+        pinch_dist = math.hypot(index[0] - thumb[0], index[1] - thumb[1])
+        return pinch_dist/palm_len
+# HELPER FUNCTIONS
 
 # Path to model 
 model_path = r"./models/hand_landmarker.task"
 
-PINCH_THRESHOLD = 0.4
+PINCH_ON = 0.35
+PINCH_OFF = 0.45
 
 # Capture picture frame from webcam
 cap = cv2.VideoCapture(0)
@@ -37,6 +54,7 @@ options = hand_landmarker_options(
 prev_time = time.perf_counter()
 total_time = 0
 count = 0
+pinching = False
 
 with hand_landmarker.create_from_options(options) as landmarker:
     while True:
@@ -85,22 +103,25 @@ with hand_landmarker.create_from_options(options) as landmarker:
             # --------------------------------------------
             
             # calculats dist from bottom pinky to wrist and pink distance from index to thumb
-            palm_len = math.hypot(bottom_pinky_x - wrist_x, bottom_pinky_y - wrist_y)
-            pinch_dist = math.hypot(index_x - thumb_x, index_y - thumb_y)
 
-            # if palm len < 10 means the angle of the hand is such that it cnanot be detected hence ignore ratio else continue as follows
-            if palm_len < 10:
-                cv2.putText(flipped_frame, f"ratio: --", (420, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
+            ratio = pinch_ratio(hand_landmarker_result.hand_landmarks[0], width, height)
+            
+            if ratio is None:
+                pinching = False
             else:
-                ratio = pinch_dist/palm_len
                 cv2.putText(flipped_frame, f"ratio: {ratio:.2f}", (420, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
-
-                # if ratio < threshold put pinch which shows it can read it as a pinch
-                if ratio < PINCH_THRESHOLD:
+                
+                if ratio < PINCH_ON:
+                    pinching = True
+                elif ratio > PINCH_OFF:
+                    pinching = False
+                if pinching:
                     cv2.putText(flipped_frame, "PINCH", (int(width/2), int(height/2)), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0))
 
             cv2.line(flipped_frame, (int(thumb_x), int(thumb_y)), (int(index_x), int(index_y)), (255, 0, 0), 2)
             # cv2.putText(flipped_frame, f"distance: {str(int(pinch_dist))}", (420, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))   
+        else:
+            pinching = False
 
         # normal cv2 stuff
         cv2.putText(flipped_frame, f"detect: {int(total_time/count)}", (250, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))

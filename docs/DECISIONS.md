@@ -148,3 +148,33 @@
 ### Open questions
 - Is rotation (foreshortening) a real problem in use? If so: max of two palm lengths (0→17, 0→9) or world landmarks?
 - For zoom: trigger on pinch state (on/off) or on change in ratio over time?
+
+## 2026-10-17 — M2.1: Pinch hysteresis + `pinch_ratio()` refactor
+
+**Decided**
+- Replaced single threshold (0.4) with hysteresis: `PINCH_ON = 0.35` (enter), `PINCH_OFF = 0.45` (exit). Ratio must cross the whole 0.10 gap to change state, so ±0.02 jitter can't flicker it.
+- `pinching` state lives outside the loop; reset to `False` when no hand is detected and when `palm_len < 10` (safe default).
+- Moved px conversion, palm_len guard and ratio maths into `pinch_ratio(landmarks, width, height)` → returns ratio, or `None` if palm too small.
+
+**Rejected**
+- Single threshold: flickers when ratio hovers near it.
+- Keeping `pinching` on bad palm_len frames: rejected for safety; may cause zoom stutter if hand turns edge-on. Revisit in M3.
+- Passing 4 points separately to `pinch_ratio`: caller would need to know landmark indices and handle px conversion; passing whole hand keeps that inside.
+
+**Concepts learned**
+- Ratio is scale-invariant because both distances scale by the same factor with depth.
+- Guard failure without `else` → stale value from previous frame (silent bug), not just `NameError`.
+- Hysteresis: low threshold to enter, high to exit, keep state in the gap.
+- State that must persist across frames is initialised before the loop.
+- Stale state when the input disappears → reset explicitly.
+- Pure functions can be unit-tested with fake inputs (no webcam).
+
+**Next tasks**
+- [ ] Clean up: 4-space indentation, guard before computing `pinch_dist`, remove stale threshold comment. *Done when:* code reads consistently, no outdated comments.
+- [ ] Webcam test. *Done when:* half-pinch label steady, full pinch/release toggles, hand leaving clears "PINCH".
+- [ ] (Optional) `tests/test_pinch.py` with one fake-landmark case (expect 0.3) and one `None` case. *Done when:* `pytest` passes.
+- [ ] M3: design pinch → zoom (what drives zoom amount, how to send zoom to the OS).
+
+**Open questions**
+- Does the reset-on-small-palm cause noticeable stutter during zoom?
+- Should zoom be driven by pinch state (on/off) or by *change* in ratio while pinching?

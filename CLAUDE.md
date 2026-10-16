@@ -94,9 +94,7 @@ Design questions to work through with me (don't answer them for me):
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
 ## Status
-**Status (2026-10-15):** M0, M1.1–M1.4, M2 (pinch detection) done. cam_live.py shows FPS, detect ms (~6), thumb–index line, normalised pinch ratio (÷ palm 0→17), and PINCH at ratio < 0.4. Known issues: flicker at threshold (fix: hysteresis), rotation distorts ratio.
-**Next:** hysteresis → refactor into pinch_ratio() → M3 zoom control.
-
+**Status (2026-10-17):** M2.1 done — pinch hysteresis (0.35/0.45), `pinch_ratio()` refactor, state resets on no-hand / small palm. Next: cleanup + webcam test, then M3 (pinch → zoom).
 ## Conventions
 - Type hints and short docstrings on public functions
 - Seed for reproducibility; log hyperparameters and results per run
