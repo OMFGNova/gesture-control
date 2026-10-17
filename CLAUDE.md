@@ -94,7 +94,7 @@ Design questions to work through with me (don't answer them for me):
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
 ## Status
-**Status (2026-10-17):** M2.1 done — pinch hysteresis (0.35/0.45), `pinch_ratio()` refactor, state resets on no-hand / small palm. Next: cleanup + webcam test, then M3 (pinch → zoom).
+**Status (2026-10-17):** M3.0 in progress. 3D pinch ratio + hysteresis (0.25 / 2.5) + debounce (N=3) working with prints. Next: `None` unknown state, then pyautogui hotkeys.
 ## Conventions
 - Type hints and short docstrings on public functions
 - Seed for reproducibility; log hyperparameters and results per run

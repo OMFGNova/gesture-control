@@ -178,3 +178,35 @@
 **Open questions**
 - Does the reset-on-small-palm cause noticeable stutter during zoom?
 - Should zoom be driven by pinch state (on/off) or by *change* in ratio while pinching?
+
+## M3.0: Pinch → zoom (discrete), signal fixes (2026-10-17)
+
+### Decisions
+- **Discrete zoom first, continuous later.** Zoom fires on the pinch-state *edge*: open→pinch = ZOOM OUT, pinch→open = ZOOM IN. Edge detection is reused later for fist↔open music control. Continuous zoom (Δratio while "engaged") is planned as M3 v2.
+- **Switched to 3D world landmarks** (`hand_world_landmarks`, metres) for `pinch_ratio_3d`. In 2D, `palm_len` collapsed when the hand tilted, so the ratio spiked. Measured with 3D: steady pinch ~0.13–0.15, open ~3.3–3.5, occasional spikes to 1–2.
+- **Thresholds from data:** PINCH_ON = 0.25, PINCH_OFF = 2.5, plus a **debounce** (N = 3 consecutive frames) to kill 1–2 frame spikes. Guard: `palm_len < 0.02 m → None`.
+- **Unknown state:** `pinch = None` at start and on hand loss / `ratio is None`. The first confirmed state is set silently (no zoom). `prev_status` removed, since the debounced flip *is* the edge.
+- **OS input:** `pyautogui` hotkeys (Ctrl+= / Ctrl+-), not shown working yet.
+
+### Rejected
+- **Zoom while `pinching` is True (state-driven):** can only zoom in one direction.
+- **Raising PINCH_OFF alone to dodge spikes:** treats the symptom and leaves a small margin to a real open.
+- **`keyboard` library:** global low-level hook on Windows, may need admin, poorly maintained.
+- **Splitting edge detection out of the threshold branches *without* tracking why the state changed:** a lost hand would fire a false ZOOM IN. Superseded by the `None` state.
+
+### Concepts to understand
+- Hysteresis dead band vs. landmark noise; picking thresholds from measured min/max with margins.
+- 2D normalised landmarks (fractions of the image) vs. 3D world landmarks (metres): why `width`/`height` aren't needed in 3D.
+- Debounce = N consecutive "yes" frames; any "no" resets it (stops spikes accumulating).
+- `not None` is True, so check `is None` before any `not pinch` logic.
+
+### Next tasks
+- [ ] Implement the `None` state (code from the 2026-10-17 chat). **Done when:** a hand entering already pinched prints nothing.
+- [ ] Re-run the full test. **Done when:** wiggly pinch → no print; pinch → one ZOOM OUT; open → one ZOOM IN; hand leaves mid-pinch → no print.
+- [ ] `scripts/test_zoom.py`: a standalone pyautogui zoom in/out. **Done when:** a browser page zooms in and back out.
+- [ ] Swap the prints for hotkeys. **Done when:** pinch/open zooms a PDF or browser page.
+
+### Open questions
+- Should the first state out of `None` also be debounced? (A spike on entry → wrong start state → false zoom.)
+- Lower PINCH_OFF toward ~2.0 now that the debounce exists?
+- Remove the leftover 2D `pinch_ratio` and duplicate landmark code in the loop?
