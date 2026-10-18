@@ -12,21 +12,6 @@ def to_px(landmark, width, height):
 
     return (x, y)
 
-def pinch_ratio(landmarks, width, height):
-    thumb = to_px(landmarks[4], width, height)
-    index =to_px(landmarks[8], width, height)
-
-    wrist = to_px(landmarks[0], width, height)
-    bottom_pinky = to_px(landmarks[17], width, height)
-
-    palm_len = math.hypot(bottom_pinky[0] - wrist[0], bottom_pinky[1] - wrist[1])
-
-    if palm_len < 10:
-        return None
-    else:
-        pinch_dist = math.hypot(index[0] - thumb[0], index[1] - thumb[1])
-        return pinch_dist/palm_len
-
 def pinch_ratio_3d(landmarks):
     thumb = (landmarks[4].x, landmarks[4].y, landmarks[4].z)
     index = (landmarks[8].x, landmarks[8].y, landmarks[8].z)
@@ -46,8 +31,8 @@ def pinch_ratio_3d(landmarks):
 # Path to model 
 model_path = r"./models/hand_landmarker.task"
 
-PINCH_ON = 0.25
-PINCH_OFF = 2.5
+PINCH_ON = 0.4
+PINCH_OFF = 2.3
 
 # Capture picture frame from webcam
 cap = cv2.VideoCapture(0)
@@ -112,10 +97,10 @@ with hand_landmarker.create_from_options(options) as landmarker:
             bottom_pinky_x, bottom_pinky_y = to_px(hand_landmarker_result.hand_landmarks[0][17], width, height)
 
             # calculats dist from bottom pinky to wrist and pink distance from index to thumb
-            ratio = pinch_ratio(hand_landmarker_result.hand_landmarks[0], width, height)
+            ratio = pinch_ratio_3d(hand_landmarker_result.hand_landmarks[0])
             
             if ratio is None:
-                pinch = False
+                pinch = None
                 debounce = 0
             else:
                 cv2.putText(flipped_frame, f"ratio: {ratio:.2f}", (420, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
@@ -143,10 +128,10 @@ with hand_landmarker.create_from_options(options) as landmarker:
                         debounce = 0
                         if pinch:
                             print("ZOOM OUT")
-                            pyautogui.hotkey("ctrl", "-")
+                            # pyautogui.hotkey("ctrl", "-")
                         else:
                             print("ZOOM IN")
-                            pyautogui.hotkey("ctrl", "+")
+                            # pyautogui.hotkey("ctrl", "+")
 
             cv2.line(flipped_frame, (int(thumb_x), int(thumb_y)), (int(index_x), int(index_y)), (255, 0, 0), 2)
             # cv2.putText(flipped_frame, f"distance: {str(int(pinch_dist))}", (420, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))   
