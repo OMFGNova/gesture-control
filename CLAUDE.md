@@ -93,8 +93,10 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Status
-**Status (2026-10-17):** M3.0 in progress. 3D pinch ratio + hysteresis (0.25 / 2.5) + debounce (N=3) working with prints. Next: `None` unknown state, then pyautogui hotkeys.
+## Status (2026-10-18)
+M3.0 discrete zoom: done (3D pinch ratio, None state, debounce N=5, pyautogui ctrl +/-).
+M3.1 continuous zoom: in progress. Clutch detection + latch done; zoom still uses old alternating toggle gated by clutch_on. Next: live current/reference display.
+
 ## Conventions
 - Type hints and short docstrings on public functions
 - Seed for reproducibility; log hyperparameters and results per run

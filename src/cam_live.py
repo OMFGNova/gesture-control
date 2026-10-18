@@ -6,6 +6,14 @@ import pyautogui
 
 # HELPER FUNCTIONS
 def pinch_ratio_3d(landmarks):
+    """Ratio between distance of tip of index and tip of thumb
+
+    Args:
+        landmarks: landmark results from detection of hand using mediapipe
+
+    Returns:
+        float: ratio
+    """
     thumb = (landmarks[4].x, landmarks[4].y, landmarks[4].z)
     index = (landmarks[8].x, landmarks[8].y, landmarks[8].z)
 
@@ -21,6 +29,16 @@ def pinch_ratio_3d(landmarks):
         return pinch_dist/palm_len
 
 def is_curled(landmarks, tip, knuckle):
+    """Check finger is curled
+    
+    Args:
+        landmarks: landmark results from detection of hand using mediapipe
+        tip: index of tip of finger
+        knuckle: index of knuckle of finger
+
+    Returns:
+        Boolean
+    """
     wrist = (landmarks[0].x, landmarks[0].y, landmarks[0].z)
 
     tip = (landmarks[tip].x, landmarks[tip].y, landmarks[tip].z)

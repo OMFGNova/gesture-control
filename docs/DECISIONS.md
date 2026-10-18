@@ -210,3 +210,36 @@
 - Should the first state out of `None` also be debounced? (A spike on entry → wrong start state → false zoom.)
 - Lower PINCH_OFF toward ~2.0 now that the debounce exists?
 - Remove the leftover 2D `pinch_ratio` and duplicate landmark code in the loop?
+
+## 2026-10-18 — M3.0 discrete zoom done; M3.1 continuous zoom started (clutch)
+
+**Decided**
+- Use `pinch_ratio_3d` (world landmarks), not the 2D ratio: the 2D ratio drifted under hand rotation (projection → foreshortening, segments shrink by different amounts). Retuned: firm pinch 0.23–0.25, loose 0.27–0.3, relaxed open 2.5–2.6 → PINCH_ON ≈ 0.35, PINCH_OFF ≈ 2.0, N = 5.
+- `None` = unknown state (no hand or ratio None). Checked with `is None` before `not pinch`, because `not None` is True and None would otherwise be treated as "open". Leaving None fires no action.
+- Discrete toggle can't repeat-zoom (always alternates out/in) → move to phone-style continuous zoom: measure *change* in thumb–index distance from a reference, gated by a clutch.
+- Clutch = middle/ring/pinky curled + index extended. Curl test: `dist(wrist, tip) < dist(wrist, MCP)` on world landmarks (rotation-robust; y-comparisons are not).
+- Clutch latch (hysteresis on a gesture): strict to engage (3 curled + index extended), loose to stay (3 curled, index ignored). Clutch wins over fist/music while engaged.
+
+**Rejected**
+- 2D pinch ratio: drifts with rotation.
+- Reset pose for repeat zoom: the alternating problem is a design flaw; continuous zoom solves it properly.
+- "All landmarks within a radius" as clutch: detects a full fist, not the clutch.
+- Music (fist) winning over clutch: a deep pinch bends the index → would pause music mid-zoom.
+
+**Concepts learned**
+- Debounce counts *consecutive* frames; reset on disagreement so scattered noise can't add up.
+- 2D projection vs 3D world landmarks; foreshortening.
+- MediaPipe indices: tips 4/8/12/16/20, MCP 5/9/13/17 (7/11/15/19 are DIP — too close to tips for a curl test).
+- Latch / hysteresis applied to gestures; Python precedence (`==` binds before `and`).
+- Keep state variables independent: pinch state must not reset the clutch.
+
+**Next tasks (M3.1)**
+- [ ] Live reference display — done when: on clutch engage, store thumb–index distance as reference; `current / reference` shows ~1.0 at engage, rises on spread, falls on close.
+- [ ] Map change to zoom steps — done when: spreading by a set amount fires exactly one zoom-in, and repeating gives repeated zoom-ins (same for zoom-out).
+- [ ] Clutch release stops zoom — done when: finger movement with clutch off fires nothing.
+- [ ] Remove the old discrete toggle hotkey block once continuous zoom works.
+
+**Open questions**
+- Debounce leaving None? Currently one glitchy frame (hand entering at frame edge) sets the first state → can fire a spurious action N frames later.
+- Debounce clutch engage/release, or is the latch enough?
+- Step size: fixed ratio steps (e.g. ±15%) vs re-anchoring the reference after each step?
