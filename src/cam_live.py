@@ -5,13 +5,6 @@ import math
 import pyautogui
 
 # HELPER FUNCTIONS
-def to_px(landmark, width, height):
-
-    x = landmark.x * width
-    y = landmark.y * height
-
-    return (x, y)
-
 def pinch_ratio_3d(landmarks):
     thumb = (landmarks[4].x, landmarks[4].y, landmarks[4].z)
     index = (landmarks[8].x, landmarks[8].y, landmarks[8].z)
@@ -26,13 +19,24 @@ def pinch_ratio_3d(landmarks):
     else:
         pinch_dist = math.dist(thumb, index)
         return pinch_dist/palm_len
+
+def is_curled(landmarks, tip, knuckle):
+    wrist = (landmarks[0].x, landmarks[0].y, landmarks[0].z)
+
+    tip = (landmarks[tip].x, landmarks[tip].y, landmarks[tip].z)
+    knuckle = (landmarks[knuckle].x, landmarks[knuckle].y, landmarks[knuckle].z)
+
+    wrist_tip = math.dist(wrist, tip)
+    wrist_knuckle = math.dist(wrist, knuckle)
+ 
+    return True if wrist_tip < wrist_knuckle else False
 # HELPER FUNCTIONS
 
 # Path to model 
 model_path = r"./models/hand_landmarker.task"
 
-PINCH_ON = 0.4
-PINCH_OFF = 2.3
+PINCH_ON = 0.35
+PINCH_OFF = 1.3
 
 # Capture picture frame from webcam
 cap = cv2.VideoCapture(0)
@@ -58,6 +62,7 @@ count = 0
 pinch = None
 debounce = 0
 N = 5
+clutch_on = False
 
 with hand_landmarker.create_from_options(options) as landmarker:
     while True:
@@ -88,16 +93,32 @@ with hand_landmarker.create_from_options(options) as landmarker:
             # Uses values of the hand landmarks to determine index and thumb for pinch
             height, width, _ = flipped_frame.shape
 
-
             # converts hand_landmarker results to float of the ratio of the dimensions
-            thumb_x, thumb_y = to_px(hand_landmarker_result.hand_landmarks[0][4], width, height)
-            index_x, index_y =to_px(hand_landmarker_result.hand_landmarks[0][8], width, height)
+            thumb_x, thumb_y = (hand_landmarker_result.hand_landmarks[0][4].x * width, hand_landmarker_result.hand_landmarks[0][4].y * height)
+            index_x, index_y = (hand_landmarker_result.hand_landmarks[0][8].x * width, hand_landmarker_result.hand_landmarks[0][8].y * height)
 
-            wrist_x, wrist_y = to_px(hand_landmarker_result.hand_landmarks[0][0], width, height)
-            bottom_pinky_x, bottom_pinky_y = to_px(hand_landmarker_result.hand_landmarks[0][17], width, height)
+            # check if the clutch condition is true (pinky, ring, middle curled)
+            pinky, ring = is_curled(hand_landmarker_result.hand_world_landmarks[0], 20, 17), is_curled(hand_landmarker_result.hand_world_landmarks[0], 16, 13)
+            middle, index = is_curled(hand_landmarker_result.hand_world_landmarks[0], 12, 9), is_curled(hand_landmarker_result.hand_world_landmarks[0], 8, 5)
+            clutch = pinky and ring and middle and not index
+            fist = pinky and ring and middle and index
+
+            if clutch_on:
+                if not (pinky and ring and middle):
+                    clutch_on = False
+            else:
+                if clutch:
+                    clutch_on = True
+            
+            if clutch_on:
+                cv2.putText(flipped_frame, f"clutch", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
+            elif fist:
+                cv2.putText(flipped_frame, f"fist", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
+            else:
+                cv2.putText(flipped_frame, f"-", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
 
             # calculats dist from bottom pinky to wrist and pink distance from index to thumb
-            ratio = pinch_ratio_3d(hand_landmarker_result.hand_landmarks[0])
+            ratio = pinch_ratio_3d(hand_landmarker_result.hand_world_landmarks[0])
             
             if ratio is None:
                 pinch = None
@@ -126,17 +147,19 @@ with hand_landmarker.create_from_options(options) as landmarker:
                     if debounce >= N:
                         pinch = not pinch
                         debounce = 0
-                        if pinch:
-                            print("ZOOM OUT")
-                            # pyautogui.hotkey("ctrl", "-")
-                        else:
-                            print("ZOOM IN")
-                            # pyautogui.hotkey("ctrl", "+")
+                        if clutch_on:
+                            if pinch:
+                                print("ZOOM OUT")
+                                pyautogui.hotkey("ctrl", "-")
+                            else:
+                                print("ZOOM IN")
+                                pyautogui.hotkey("ctrl", "+")
 
             cv2.line(flipped_frame, (int(thumb_x), int(thumb_y)), (int(index_x), int(index_y)), (255, 0, 0), 2)
             # cv2.putText(flipped_frame, f"distance: {str(int(pinch_dist))}", (420, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))   
         else:
             pinch = None
+            clutch_on = False
             debounce = 0 
 
         # normal cv2 stuff
