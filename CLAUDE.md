@@ -77,9 +77,9 @@ Current: src/cam_check.py (camera diagnostic), src/cam_live.py (live loop; may b
 The structure may change as decisions are made. Record changes in `docs/DECISIONS.md`.
 
 ## Milestones
-- [ ] M0: Set up repo, venv, and Git; webcam opens in an OpenCV window
-- [ ] M1: Hand landmarks drawn live on the webcam feed
-- [ ] M2: Understand the 21 landmarks; normalise them (position- and scale-invariant)
+- [x] M0: Set up repo, venv, and Git; webcam opens in an OpenCV window
+- [x] M1: Hand landmarks drawn live on the webcam feed
+- [x] M2: Understand the 21 landmarks; normalise them (position- and scale-invariant)
 - [ ] M3: Rule-based baseline for 1–2 gestures (e.g. pinch distance, open vs fist) to understand the problem before ML
 - [ ] M4: Recording script; collect a labelled dataset for all gestures plus "no gesture"
 - [ ] M5: Write my own PyTorch Dataset, model, and training loop; evaluate with a held-out test set, confusion matrix, and per-class metrics
@@ -93,9 +93,8 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Status (2026-10-18)
-M3.0 discrete zoom: done (3D pinch ratio, None state, debounce N=5, pyautogui ctrl +/-).
-M3.1 continuous zoom: in progress. Clutch detection + latch done; zoom still uses old alternating toggle gated by clutch_on. Next: live current/reference display.
+## Status (2026-10-23)
+M3.1 done. Continuous zoom via clutch-latched reference + re-anchor (ZOOM_IN_STEP 1.25, reciprocal out). Old pinch toggle removed. Release fires nothing (tested). Next: overlay cleanup, step tuning, then scroll-gesture design (conflicts with clutch pose).
 
 ## Conventions
 - Type hints and short docstrings on public functions

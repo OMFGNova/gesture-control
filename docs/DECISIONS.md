@@ -243,3 +243,32 @@
 - Debounce leaving None? Currently one glitchy frame (hand entering at frame edge) sets the first state → can fire a spurious action N frames later.
 - Debounce clutch engage/release, or is the latch enough?
 - Step size: fixed ratio steps (e.g. ±15%) vs re-anchoring the reference after each step?
+
+## M3.1 — Continuous (phone-style) zoom — 2026-10-23
+
+**Decided**
+- On clutch engage, store `ref = pinch_ratio_3d` once (armed when `ref is None`, cleared on clutch release / no hand). Zoom is driven by `change = ratio / ref`.
+- Re-anchor after each fire: `change > ZOOM_IN_STEP` → zoom in, `change < ZOOM_OUT_STEP` → zoom out, then `ref = ratio`. `ZOOM_IN_STEP = 1.25`, `ZOOM_OUT_STEP = 1 / ZOOM_IN_STEP`.
+- Removed the old discrete pinch toggle (pinch state machine, PINCH_ON/OFF, debounce N, None state).
+
+**Rejected**
+- Fixed ref + step counting: jitter at a level boundary fires in/out/in unless you add another hysteresis band. Re-anchoring gets that hysteresis for free.
+- Hard-coded 0.8: a magic number that can drift out of sync with the zoom-in step.
+- Ratio difference (`cur - ref`): zoom is multiplicative, so the ratio is the natural fit.
+
+**Concepts**
+- Edge vs state: `clutch_on and ref is None` detects the engage *moment* without a `prev_clutch_on`.
+- Hysteresis: re-anchoring resets `change` to 1.0, and jitter (~±2%) can't cross 0.8 / 1.25.
+- Reciprocal threshold: undoing one zoom-in means getting back to the start, i.e. `1/1.25`.
+- `ref` must be a measurement (same kind as `ratio`), never a comparison (`change`).
+- Hand landmarks: DIP = 7/11/15/19 (too close to the tip for a curl test); MCP = 5/9/13/17 (real knuckles).
+- Use `is not None`, not truthiness, for "is set".
+
+**Next**
+- [ ] Clean up the overlay (no overlapping text; drop the duplicate `cur`/`ratio`). Done when every label is readable at once.
+- [ ] Tune `ZOOM_IN_STEP` (try 1.15 / 1.25 / 1.4). Done when you've picked one and written down why.
+- [ ] Design the scroll gesture so it doesn't collide with the clutch pose. Done when the rule for "scroll vs zoom" is written down before any code.
+
+**Open questions**
+- ⚠️ "One finger up" for scroll is the **same pose as the zoom clutch** (index out, middle/ring/pinky curled). How do we tell them apart?
+- Is `ctrl` + `+` reliable across apps, or is `ctrl` + `=` needed?
