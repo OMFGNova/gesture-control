@@ -1,13 +1,13 @@
-## M0.1–M0.3 — Environment & Git setup (2026-10-12)
+## 2026-10-12 — M0.1–M0.3: Environment & Git setup
 
-### Decisions
+### Decided
 - **Python 3.11 via the `py` launcher**: `python` isn't on PATH globally (it hits the Store alias). Created the venv with `py -3.11 -m venv .venv`.
 - **cmd, not PowerShell**: avoids PowerShell's execution-policy issues. VS Code's default terminal should be set to Command Prompt.
 - **MediaPipe Tasks API (HandLandmarker), not `mp.solutions`**: `mediapipe.solutions` was removed in 0.10.31, so most online tutorials are outdated. Landmarks will be drawn manually with OpenCV.
 - **No CUDA/PyTorch for M1**: not needed for MediaPipe hands. Reason to be confirmed in M1.1.
 - **Git is local only for now**: GitHub remote to be added after M0.
 
-### Alternatives rejected
+### Rejected
 - Pinning old mediapipe (≤0.10.21) to use `mp.solutions`: a dead-end API.
 - Committing the venv: large, machine-specific, and replaced by `requirements.txt`.
 
@@ -22,26 +22,26 @@
 - Commit = local, push = remote.
 
 ### Next tasks
-- [x] Fix Git identity: `git config --global user.name "..."` and `git commit --amend --reset-author --no-edit`. **Done when** `git log` shows your name.
-- [x] Add `__pycache__/` and `.vscode/` to `.gitignore` and commit. **Done when** `git status` is clean after running a script.
-- [x] Set VS Code's default terminal to Command Prompt. **Done when** a new terminal opens in cmd.
-- [x] M0.4 `src/cam_check.py`: open camera, read one frame, print `isOpened()` and `frame.shape`. **Done when** it prints `True` plus a shape, and you can explain each number.
-- [x] M0.5: live window loop, quit on `q`, release and destroy. **Done when** `q` closes cleanly with no hang.
-- [ ] M0.6: mirror the frame and show FPS. **Done when** FPS is visible on the feed. Commit. (moved to 2026-10-14)
+- [x] Fix Git identity: `git config --global user.name "..."` and `git commit --amend --reset-author --no-edit`. ***Done when:*** `git log` shows your name.
+- [x] Add `__pycache__/` and `.vscode/` to `.gitignore` and commit. ***Done when:*** `git status` is clean after running a script.
+- [x] Set VS Code's default terminal to Command Prompt. ***Done when:*** a new terminal opens in cmd.
+- [x] M0.4 `src/cam_check.py`: open camera, read one frame, print `isOpened()` and `frame.shape`. ***Done when:*** it prints `True` plus a shape, and you can explain each number.
+- [x] M0.5: live window loop, quit on `q`, release and destroy. ***Done when:*** `q` closes cleanly with no hang.
+- [ ] M0.6: mirror the frame and show FPS. ***Done when:*** FPS is visible on the feed. Commit. (moved to 2026-10-14)
 
 ### Open questions
 - Should `models/*.task` be committed or ignored? (decide in M1.2)
 - When should the GitHub remote be created: after M0, or after M1?
 - Which mediapipe version should be pinned? Check that Windows wheels exist for Python 3.11 before installing.
 
-## M0.4–M0.5 — Camera check + live preview loop (2026-10-14)
+## 2026-10-14 — M0.4–M0.5: Camera check + live preview loop
 
-### Decisions
+### Decided
 - Two scripts: `src/cam_check.py` (one-frame diagnostic, rerun when the camera misbehaves) and `src/cam_live.py` (live loop that will grow into the pipeline).
 - Fail fast: `raise SystemExit(...)` if `cap.isOpened()` is False; `break` if `ret` is False.
 - Live loop uses `cv2.waitKey(1)`; quit on `q`; always `cap.release()` + `cv2.destroyAllWindows()`.
 
-### Alternatives rejected
+### Rejected
 - Single script for both: loses the quick "camera or code?" diagnostic.
 - `waitKey(0)`: blocks on every frame (frame-by-frame stepping, not live video).
 - Printing the "camera not open" message and continuing: the program runs on with a dead camera.
@@ -59,11 +59,11 @@
 - Claude Chat = learning/concepts/debugging. Claude Code = typing what I already understand ("hint only" if learning).
 
 ### Next tasks
-- [ ] M0.6 Mirror the frame + show FPS in `cam_live.py`. **Done when** the preview moves like a mirror and an FPS number updates on screen.
-- [ ] M1.1 Install `mediapipe` in the venv, add it to `requirements.txt`. **Done when** `python -c "import mediapipe; print(mediapipe.__version__)"` works.
-- [ ] M1.2 Download the `hand_landmarker.task` model into `models/`. Decide whether to gitignore it. **Done when** the file exists and the decision is noted.
-- [ ] M1.3 `src/hand_check.py`: one frame → BGR→RGB → `mp.Image` → `HandLandmarker.detect()` → print the number of hands and landmark 8 (index fingertip). **Done when** it prints 21 landmarks for a visible hand and I can explain the x/y/z values.
-- [ ] M1.4 Draw landmarks on the live feed in `cam_live.py`. **Done when** dots track my hand in real time.
+- [ ] M0.6 Mirror the frame + show FPS in `cam_live.py`. ***Done when:*** the preview moves like a mirror and an FPS number updates on screen.
+- [ ] M1.1 Install `mediapipe` in the venv, add it to `requirements.txt`. ***Done when:*** `python -c "import mediapipe; print(mediapipe.__version__)"` works.
+- [ ] M1.2 Download the `hand_landmarker.task` model into `models/`. Decide whether to gitignore it. ***Done when:*** the file exists and the decision is noted.
+- [ ] M1.3 `src/hand_check.py`: one frame → BGR→RGB → `mp.Image` → `HandLandmarker.detect()` → print the number of hands and landmark 8 (index fingertip). ***Done when:*** it prints 21 landmarks for a visible hand and I can explain the x/y/z values.
+- [ ] M1.4 Draw landmarks on the live feed in `cam_live.py`. ***Done when:*** dots track my hand in real time.
 
 ### Open questions
 - Rename branch `master` → `main` before adding the GitHub remote?
@@ -104,10 +104,10 @@
 - 4 hands: ~20 FPS (~50 ms/frame, now detection-bound).
 
 ### Next tasks
-- [ ] Set `num_hands=1` in `cam_live.py`. **Done when:** only one hand is drawn even with two in view.
-- [ ] Time `detect_for_video` alone. **Done when:** the average detection ms is printed or shown, and noted here.
-- [ ] Compute thumb–index distance (landmarks 4 & 8) and show it live. **Done when:** the number visibly drops when pinching.
-- [ ] Make the pinch distance scale-invariant. **Done when:** the value stays roughly constant when moving an open hand closer to or further from the camera.
+- [ ] Set `num_hands=1` in `cam_live.py`. ***Done when:*** only one hand is drawn even with two in view.
+- [ ] Time `detect_for_video` alone. ***Done when:*** the average detection ms is printed or shown, and noted here.
+- [ ] Compute thumb–index distance (landmarks 4 & 8) and show it live. ***Done when:*** the number visibly drops when pinching.
+- [ ] Make the pinch distance scale-invariant. ***Done when:*** the value stays roughly constant when moving an open hand closer to or further from the camera.
 
 ### Open questions
 - How to normalise pinch distance: divide by a hand-size reference (e.g. wrist→middle-finger base), or use world landmarks?
@@ -140,10 +140,10 @@
 - `git commit -am` stages tracked, modified files only; new files need `git add`.
 
 ### Next tasks
-- [ ] Hysteresis: two thresholds (enter pinch < T_on, exit pinch > T_off, T_on < T_off) with a `pinching` state variable. Done when: holding fingers near the threshold no longer flickers.
-- [ ] Refactor: move pinch logic into `pinch_ratio(landmarks, w, h)` that returns a float or None. Done when: the main loop calls one function and behaviour is unchanged.
-- [ ] (Optional) World landmarks comparison: show the 4↔8 world distance (cm) next to the ratio; record open/pinched × near/far. Done when: table filled and a choice written here.
-- [ ] M3 start: map pinch in/out to zoom. Done when: changing pinch distance zooms a document.
+- [ ] Hysteresis: two thresholds (enter pinch < T_on, exit pinch > T_off, T_on < T_off) with a `pinching` state variable. **Done when:** holding fingers near the threshold no longer flickers.
+- [ ] Refactor: move pinch logic into `pinch_ratio(landmarks, w, h)` that returns a float or None. **Done when:** the main loop calls one function and behaviour is unchanged.
+- [ ] (Optional) World landmarks comparison: show the 4↔8 world distance (cm) next to the ratio; record open/pinched × near/far. **Done when:** table filled and a choice written here.
+- [ ] M3 start: map pinch in/out to zoom. **Done when:** changing pinch distance zooms a document.
 
 ### Open questions
 - Is rotation (foreshortening) a real problem in use? If so: max of two palm lengths (0→17, 0→9) or world landmarks?
@@ -151,17 +151,17 @@
 
 ## 2026-10-17 — M2.1: Pinch hysteresis + `pinch_ratio()` refactor
 
-**Decided**
+### Decided
 - Replaced single threshold (0.4) with hysteresis: `PINCH_ON = 0.35` (enter), `PINCH_OFF = 0.45` (exit). Ratio must cross the whole 0.10 gap to change state, so ±0.02 jitter can't flicker it.
 - `pinching` state lives outside the loop; reset to `False` when no hand is detected and when `palm_len < 10` (safe default).
 - Moved px conversion, palm_len guard and ratio maths into `pinch_ratio(landmarks, width, height)` → returns ratio, or `None` if palm too small.
 
-**Rejected**
+### Rejected
 - Single threshold: flickers when ratio hovers near it.
 - Keeping `pinching` on bad palm_len frames: rejected for safety; may cause zoom stutter if hand turns edge-on. Revisit in M3.
 - Passing 4 points separately to `pinch_ratio`: caller would need to know landmark indices and handle px conversion; passing whole hand keeps that inside.
 
-**Concepts learned**
+### Concepts learned
 - Ratio is scale-invariant because both distances scale by the same factor with depth.
 - Guard failure without `else` → stale value from previous frame (silent bug), not just `NameError`.
 - Hysteresis: low threshold to enter, high to exit, keep state in the gap.
@@ -169,19 +169,19 @@
 - Stale state when the input disappears → reset explicitly.
 - Pure functions can be unit-tested with fake inputs (no webcam).
 
-**Next tasks**
-- [ ] Clean up: 4-space indentation, guard before computing `pinch_dist`, remove stale threshold comment. *Done when:* code reads consistently, no outdated comments.
-- [ ] Webcam test. *Done when:* half-pinch label steady, full pinch/release toggles, hand leaving clears "PINCH".
-- [ ] (Optional) `tests/test_pinch.py` with one fake-landmark case (expect 0.3) and one `None` case. *Done when:* `pytest` passes.
+### Next tasks
+- [ ] Clean up: 4-space indentation, guard before computing `pinch_dist`, remove stale threshold comment. **Done when:** code reads consistently, no outdated comments.
+- [ ] Webcam test. **Done when:** half-pinch label steady, full pinch/release toggles, hand leaving clears "PINCH".
+- [ ] (Optional) `tests/test_pinch.py` with one fake-landmark case (expect 0.3) and one `None` case. **Done when:** `pytest` passes.
 - [ ] M3: design pinch → zoom (what drives zoom amount, how to send zoom to the OS).
 
-**Open questions**
+### Open questions
 - Does the reset-on-small-palm cause noticeable stutter during zoom?
 - Should zoom be driven by pinch state (on/off) or by *change* in ratio while pinching?
 
-## M3.0: Pinch → zoom (discrete), signal fixes (2026-10-17)
+## 2026-10-17 — M3.0: Pinch → zoom (discrete), signal fixes
 
-### Decisions
+### Decided
 - **Discrete zoom first, continuous later.** Zoom fires on the pinch-state *edge*: open→pinch = ZOOM OUT, pinch→open = ZOOM IN. Edge detection is reused later for fist↔open music control. Continuous zoom (Δratio while "engaged") is planned as M3 v2.
 - **Switched to 3D world landmarks** (`hand_world_landmarks`, metres) for `pinch_ratio_3d`. In 2D, `palm_len` collapsed when the hand tilted, so the ratio spiked. Measured with 3D: steady pinch ~0.13–0.15, open ~3.3–3.5, occasional spikes to 1–2.
 - **Thresholds from data:** PINCH_ON = 0.25, PINCH_OFF = 2.5, plus a **debounce** (N = 3 consecutive frames) to kill 1–2 frame spikes. Guard: `palm_len < 0.02 m → None`.
@@ -194,69 +194,69 @@
 - **`keyboard` library:** global low-level hook on Windows, may need admin, poorly maintained.
 - **Splitting edge detection out of the threshold branches *without* tracking why the state changed:** a lost hand would fire a false ZOOM IN. Superseded by the `None` state.
 
-### Concepts to understand
+### Concepts learned
 - Hysteresis dead band vs. landmark noise; picking thresholds from measured min/max with margins.
 - 2D normalised landmarks (fractions of the image) vs. 3D world landmarks (metres): why `width`/`height` aren't needed in 3D.
 - Debounce = N consecutive "yes" frames; any "no" resets it (stops spikes accumulating).
 - `not None` is True, so check `is None` before any `not pinch` logic.
 
 ### Next tasks
-- [ ] Implement the `None` state (code from the 2026-10-17 chat). **Done when:** a hand entering already pinched prints nothing.
-- [ ] Re-run the full test. **Done when:** wiggly pinch → no print; pinch → one ZOOM OUT; open → one ZOOM IN; hand leaves mid-pinch → no print.
-- [ ] `scripts/test_zoom.py`: a standalone pyautogui zoom in/out. **Done when:** a browser page zooms in and back out.
-- [ ] Swap the prints for hotkeys. **Done when:** pinch/open zooms a PDF or browser page.
+- [ ] Implement the `None` state (code from the 2026-10-17 chat). ***Done when:*** a hand entering already pinched prints nothing.
+- [ ] Re-run the full test. ***Done when:*** wiggly pinch → no print; pinch → one ZOOM OUT; open → one ZOOM IN; hand leaves mid-pinch → no print.
+- [ ] `scripts/test_zoom.py`: a standalone pyautogui zoom in/out. ***Done when:*** a browser page zooms in and back out.
+- [ ] Swap the prints for hotkeys. ***Done when:*** pinch/open zooms a PDF or browser page.
 
 ### Open questions
 - Should the first state out of `None` also be debounced? (A spike on entry → wrong start state → false zoom.)
 - Lower PINCH_OFF toward ~2.0 now that the debounce exists?
 - Remove the leftover 2D `pinch_ratio` and duplicate landmark code in the loop?
 
-## 2026-10-18 — M3.0 discrete zoom done; M3.1 continuous zoom started (clutch)
+## 2026-10-18 — M3.0 → M3.1: Discrete zoom done, continuous zoom started (clutch)
 
-**Decided**
+### Decided
 - Use `pinch_ratio_3d` (world landmarks), not the 2D ratio: the 2D ratio drifted under hand rotation (projection → foreshortening, segments shrink by different amounts). Retuned: firm pinch 0.23–0.25, loose 0.27–0.3, relaxed open 2.5–2.6 → PINCH_ON ≈ 0.35, PINCH_OFF ≈ 2.0, N = 5.
 - `None` = unknown state (no hand or ratio None). Checked with `is None` before `not pinch`, because `not None` is True and None would otherwise be treated as "open". Leaving None fires no action.
 - Discrete toggle can't repeat-zoom (always alternates out/in) → move to phone-style continuous zoom: measure *change* in thumb–index distance from a reference, gated by a clutch.
 - Clutch = middle/ring/pinky curled + index extended. Curl test: `dist(wrist, tip) < dist(wrist, MCP)` on world landmarks (rotation-robust; y-comparisons are not).
 - Clutch latch (hysteresis on a gesture): strict to engage (3 curled + index extended), loose to stay (3 curled, index ignored). Clutch wins over fist/music while engaged.
 
-**Rejected**
+### Rejected
 - 2D pinch ratio: drifts with rotation.
 - Reset pose for repeat zoom: the alternating problem is a design flaw; continuous zoom solves it properly.
 - "All landmarks within a radius" as clutch: detects a full fist, not the clutch.
 - Music (fist) winning over clutch: a deep pinch bends the index → would pause music mid-zoom.
 
-**Concepts learned**
+### Concepts learned
 - Debounce counts *consecutive* frames; reset on disagreement so scattered noise can't add up.
 - 2D projection vs 3D world landmarks; foreshortening.
 - MediaPipe indices: tips 4/8/12/16/20, MCP 5/9/13/17 (7/11/15/19 are DIP — too close to tips for a curl test).
 - Latch / hysteresis applied to gestures; Python precedence (`==` binds before `and`).
 - Keep state variables independent: pinch state must not reset the clutch.
 
-**Next tasks (M3.1)**
-- [ ] Live reference display — done when: on clutch engage, store thumb–index distance as reference; `current / reference` shows ~1.0 at engage, rises on spread, falls on close.
-- [ ] Map change to zoom steps — done when: spreading by a set amount fires exactly one zoom-in, and repeating gives repeated zoom-ins (same for zoom-out).
-- [ ] Clutch release stops zoom — done when: finger movement with clutch off fires nothing.
+### Next tasks
+- [ ] Live reference display. **Done when:** on clutch engage, store thumb–index distance as reference; `current / reference` shows ~1.0 at engage, rises on spread, falls on close.
+- [ ] Map change to zoom steps. **Done when:** spreading by a set amount fires exactly one zoom-in, and repeating gives repeated zoom-ins (same for zoom-out).
+- [ ] Clutch release stops zoom. **Done when:** finger movement with clutch off fires nothing.
 - [ ] Remove the old discrete toggle hotkey block once continuous zoom works.
 
-**Open questions**
+### Open questions
 - Debounce leaving None? Currently one glitchy frame (hand entering at frame edge) sets the first state → can fire a spurious action N frames later.
 - Debounce clutch engage/release, or is the latch enough?
 - Step size: fixed ratio steps (e.g. ±15%) vs re-anchoring the reference after each step?
 
-## M3.1 — Continuous (phone-style) zoom — 2026-10-23
+## 2026-10-23 — M3.1: Continuous (phone-style) zoom
 
-**Decided**
+### Decided
 - On clutch engage, store `ref = pinch_ratio_3d` once (armed when `ref is None`, cleared on clutch release / no hand). Zoom is driven by `change = ratio / ref`.
 - Re-anchor after each fire: `change > ZOOM_IN_STEP` → zoom in, `change < ZOOM_OUT_STEP` → zoom out, then `ref = ratio`. `ZOOM_IN_STEP = 1.25`, `ZOOM_OUT_STEP = 1 / ZOOM_IN_STEP`.
 - Removed the old discrete pinch toggle (pinch state machine, PINCH_ON/OFF, debounce N, None state).
 
-**Rejected**
+### Rejected
 - Fixed ref + step counting: jitter at a level boundary fires in/out/in unless you add another hysteresis band. Re-anchoring gets that hysteresis for free.
 - Hard-coded 0.8: a magic number that can drift out of sync with the zoom-in step.
 - Ratio difference (`cur - ref`): zoom is multiplicative, so the ratio is the natural fit.
 
-**Concepts**
+### Concepts learned
 - Edge vs state: `clutch_on and ref is None` detects the engage *moment* without a `prev_clutch_on`.
 - Hysteresis: re-anchoring resets `change` to 1.0, and jitter (~±2%) can't cross 0.8 / 1.25.
 - Reciprocal threshold: undoing one zoom-in means getting back to the start, i.e. `1/1.25`.
@@ -264,11 +264,49 @@
 - Hand landmarks: DIP = 7/11/15/19 (too close to the tip for a curl test); MCP = 5/9/13/17 (real knuckles).
 - Use `is not None`, not truthiness, for "is set".
 
-**Next**
-- [ ] Clean up the overlay (no overlapping text; drop the duplicate `cur`/`ratio`). Done when every label is readable at once.
-- [ ] Tune `ZOOM_IN_STEP` (try 1.15 / 1.25 / 1.4). Done when you've picked one and written down why.
-- [ ] Design the scroll gesture so it doesn't collide with the clutch pose. Done when the rule for "scroll vs zoom" is written down before any code.
+### Next tasks
+- [x] Clean up the overlay (no overlapping text; drop the duplicate `cur`/`ratio`). **Done when:** every label is readable at once. (done 2026-10-23, M3.2)
+- [x] Tune `ZOOM_IN_STEP` (try 1.15 / 1.25 / 1.4). **Done when:** you've picked one and written down why. (done 2026-10-23: 1.25, see M3.2)
+- [x] Design the scroll gesture so it doesn't collide with the clutch pose. **Done when:** the rule for "scroll vs zoom" is written down before any code. (done 2026-10-23, see M3.3)
 
-**Open questions**
-- ⚠️ "One finger up" for scroll is the **same pose as the zoom clutch** (index out, middle/ring/pinky curled). How do we tell them apart?
-- Is `ctrl` + `+` reliable across apps, or is `ctrl` + `=` needed?
+### Open questions
+- ~~"One finger up" for scroll is the **same pose as the zoom clutch** (index out, middle/ring/pinky curled). How do we tell them apart?~~ **Answered 2026-10-23 (M3.3):** clutch + thumb tucked = SCROLL, clutch + thumb out = ZOOM.
+- Is `ctrl` + `+` reliable across apps, or is `ctrl` + `=` needed? (carried forward to M3.2–M3.3)
+
+## 2026-10-23 — M3.2 → M3.3: Overlay cleanup, zoom step tuning, scroll design
+
+### Decided
+- **Overlay:** `draw_lines(frame, dict)` stacks lines top-left with y from the line's index. It shows: fps, mode, change (temporary, for tuning), and the last action held for `ACTION_SHOW_S` (0.3 s) using `action` + `action_time`. Raw ratio/ref, fist, and detect-time were dropped.
+- **ZOOM_IN_STEP = 1.25.** Mid-pinch noise is about ±6% (change 0.94–1.02). Usable range is ratio 0.1→1.0 (×10), which gives log(10)/log(1.25) ≈ 10 steps per full motion, so typical movements give 3–5. Jitter is worse near a closed pinch, so 1.15 is too risky. Fallback is 1.35 or 1.5 if misfires appear.
+- **Scroll pose:** clutch pose + **thumb tucked** = SCROLL; clutch + thumb out = ZOOM. Motion is the **whole hand moving up/down** with the index kept straight.
+- **Scroll signal:** on engage, `ref = hand_y`; each frame, `(hand_y - ref) / palm_len`. This is a difference, not a ratio.
+
+### Rejected
+- Index + pinky up for scroll: awkward pose, and lifting the pinky breaks the clutch latch.
+- Finger-bend scroll: small, noisy signal (mostly z-axis), conflicts with `is_curled(index)` turning true, and is tiring.
+- Using a ratio for scroll: y has an arbitrary origin, so ref near 0 makes the ratio explode and the same movement scales differently across the frame.
+- `is_curled` for the thumb: a tucked thumb goes across the palm, not toward the wrist.
+
+### Concepts learned
+- Re-anchoring (`ref = ratio` after a fire) = hysteresis: the next fire needs a full step from the new point, so jitter sits in the 0.8–1.25 dead band.
+- The ref must have the same units as the value it divides (ratio, not change).
+- Relative measures amplify noise when the denominator is small: ±0.01 jitter is ±2% at ref 0.5 but ±10% at ref 0.1.
+- Each guard protects one denominator (`palm_len` ≠ `ref`).
+- Steps in a multiplicative range: n = log(r_max / r_min) / log(STEP).
+- Use a ratio when the quantity has a true zero; use a difference when its origin is arbitrary.
+- Thresholds are measured from data, not guessed.
+
+### Next tasks
+- [ ] Measure change jitter while holding a near-closed pinch. ***Done when:*** the number is logged here next to ±6%.
+- [ ] Tidy-up: `f"{change:.2f}"` and an `ACTION_SHOW_S` constant. ***Done when:*** no magic 0.3, and change text has a fixed width.
+- [ ] `thumb_tucked_ratio()`: dist(thumb tip 4, middle MCP 9) / palm_len. Print values for (a) tucked and (b) zoom pose with a closed pinch. ***Done when:*** a threshold is chosen with a clear margin between (a) and (b).
+- [ ] Mode logic: overlay shows SCROLL vs ZOOM. ***Done when:*** the correct mode shows 10/10 times for each pose, including a closed pinch in zoom.
+- [ ] Decide stepped vs joystick scroll. ***Done when:*** the choice and reason are written here.
+- [ ] Implement scroll with ref + normalised displacement. ***Done when:*** a PDF scrolls both directions with no scroll while the hand is held still.
+
+### Open questions
+- ctrl+"+" vs ctrl+"=" reliability (still untested).
+- Stepped vs joystick scroll.
+- Is the mode latched at engage, or re-checked every frame? (What happens if the thumb tucks mid-zoom?)
+- Which landmark gives hand_y: wrist (0) or index MCP (5)?
+- Direction: hand up = scroll down ("natural"), or the reverse?

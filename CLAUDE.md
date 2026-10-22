@@ -94,7 +94,7 @@ Design questions to work through with me (don't answer them for me):
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
 ## Status (2026-10-23)
-M3.1 done. Continuous zoom via clutch-latched reference + re-anchor (ZOOM_IN_STEP 1.25, reciprocal out). Old pinch toggle removed. Release fires nothing (tested). Next: overlay cleanup, step tuning, then scroll-gesture design (conflicts with clutch pose).
+M3.2 done (overlay cleanup, ZOOM_IN_STEP=1.25 justified). M3.3 scroll designed: thumb-tucked clutch = SCROLL, hand-y displacement / palm_len. Next: measure thumb-tucked threshold.
 
 ## Conventions
 - Type hints and short docstrings on public functions
