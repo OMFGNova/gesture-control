@@ -34,7 +34,7 @@ def is_curled(landmarks, tip, knuckle):
     Args:
         landmarks: landmark results from detection of hand using mediapipe
         tip: index of tip of finger
-        knuckle: index of knuckle of finger
+        knuckle: index of knuckle of fingerq
 
     Returns:
         Boolean
@@ -48,6 +48,15 @@ def is_curled(landmarks, tip, knuckle):
     wrist_knuckle = math.dist(wrist, knuckle)
  
     return True if wrist_tip < wrist_knuckle else False
+
+def draw_lines(frame, lines):
+
+    for index, (key, value) in enumerate(lines.items()):
+        x = 20
+        y = 40 + (index*40)
+        cv2.putText(frame, f"{key}: {value}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))  
+
+
 # HELPER FUNCTIONS
 
 # Path to model 
@@ -72,22 +81,25 @@ options = hand_landmarker_options(
 
 # Loop that continuously uses live webcam
 prev_time = time.perf_counter()
-total_time = 0
-count = 0
 clutch_on = False
 ref = None
 ZOOM_IN_STEP = 1.25
 ZOOM_OUT_STEP = 1/ZOOM_IN_STEP
+ACTION_SHOW_S = 0.3
+action = None
+action_time = None
 
 with hand_landmarker.create_from_options(options) as landmarker:
     while True:
         # recording of fps, detect ms
+        each_frame = {}
         now = time.perf_counter()
         dt = now - prev_time
         time_stamp_ms = int(now * 1000)
         fps = str(int(1/dt))
         prev_time = now
         ret, frame = cap.read()
+        each_frame["fps"] = fps
 
         if not ret:
             break
@@ -97,12 +109,7 @@ with hand_landmarker.create_from_options(options) as landmarker:
         colour_flipped_frame = cv2.cvtColor(flipped_frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=colour_flipped_frame)
 
-        # detection of frame
-        start_detect_time = time.perf_counter()
         hand_landmarker_result = landmarker.detect_for_video(mp_image, time_stamp_ms)
-        end_detect_time = time.perf_counter()
-        total_time += (end_detect_time - start_detect_time) * 1000
-        count += 1
 
         if hand_landmarker_result.handedness:
             # Uses values of the hand landmarks to determine index and thumb for pinch
@@ -130,49 +137,49 @@ with hand_landmarker.create_from_options(options) as landmarker:
 
             # if clutch_on true, clutch print else if fist true print fist etc
             if clutch_on:
-                cv2.putText(flipped_frame, f"clutch", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
-            elif fist:
-                cv2.putText(flipped_frame, f"fist", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
+                each_frame["mode"] = "ZOOM"
             else:
-                cv2.putText(flipped_frame, f"-", (20, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
+                each_frame["mode"] = "-"
 
             # calculats dist from bottom pinky to wrist and pink distance from index to thumb
             ratio = pinch_ratio_3d(hand_landmarker_result.hand_world_landmarks[0])
 
             if ratio is not None:
-                cv2.putText(flipped_frame, f"ratio: {ratio:.2f}", (420, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
                 if clutch_on and ref is None:
                     ref = ratio
                 elif not clutch_on:
                     ref = None
 
-                if ref is None:
-                    cv2.putText(flipped_frame, f"ratio/ref: -", (220, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))     
-                    cv2.putText(flipped_frame, f"ref: -", (420, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
-                else:
+                if ref is not None:
                     change = ratio/ref
 
                     if change > ZOOM_IN_STEP:
                         ref = ratio
-                        print("ZOOM IN")
+                        action = "ZOOM IN"
+                        action_time = now
                         pyautogui.hotkey("ctrl", "+")
                     elif change < ZOOM_OUT_STEP:
                         ref = ratio
-                        print("ZOOM OUT")
+                        action = "ZOOM OUT"
+                        action_time = now
                         pyautogui.hotkey("ctrl", "-")
-
-                    cv2.putText(flipped_frame, f"ratio/ref: {change:.2f}", (220, 400), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))     
-                    cv2.putText(flipped_frame, f"ref: {ref:.2f}", (420, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0)) 
-
+                    
+                    each_frame["change"] = f"{change:.2f}"
+            cv2.putText(flipped_frame, f"ratio: {ratio}", (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))  
+            
             cv2.line(flipped_frame, (int(thumb_x), int(thumb_y)), (int(index_x), int(index_y)), (255, 0, 0), 2)
-
         else:
             clutch_on = False
             ref = None
 
         # normal cv2 stuff
-        cv2.putText(flipped_frame, f"detect: {int(total_time/count)}", (250, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
-        cv2.putText(flipped_frame, f"fps: {fps}", (40,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
+        if action:
+            if now - action_time < ACTION_SHOW_S:
+                each_frame["action"] = action
+            else:
+                action = None
+                action_time = None
+        draw_lines(flipped_frame, each_frame)
         cv2.imshow("window", flipped_frame)
         check = cv2.waitKey(1)
 
