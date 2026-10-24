@@ -93,8 +93,8 @@ Design questions to work through with me (don't answer them for me):
 - Is scrolling a classification problem or a continuous control problem?
 - How do you avoid zooming or switching tabs by accident during normal hand movement?
 
-## Status (2026-10-23)
-M3.2 done (overlay cleanup, ZOOM_IN_STEP=1.25 justified). M3.3 scroll designed: thumb-tucked clutch = SCROLL, hand-y displacement / palm_len. Next: measure thumb-tucked threshold.
+## Status (2026-10-25)
+M3.3 — thumb-tuck threshold measured (T_ON 0.4 / T_OFF 0.6, lm10). Mode latched at clutch engage. Palm_len bug fixed. Next: implement latch, then decide stepped vs joystick for scroll.
 
 ## Conventions
 - Type hints and short docstrings on public functions

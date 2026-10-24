@@ -310,3 +310,35 @@
 - Is the mode latched at engage, or re-checked every frame? (What happens if the thumb tucks mid-zoom?)
 - Which landmark gives hand_y: wrist (0) or index MCP (5)?
 - Direction: hand up = scroll down ("natural"), or the reverse?
+
+## 2026-10-25 — M3.3: Thumb-tuck threshold + mode latch
+
+### Decided
+- **Thumb-tuck feature:** `dist(thumb tip lm4, middle PIP lm10) / palm_len`. Lm10 over lm9 (MCP): during scroll motion, the tucked range was 0.28–0.34 with lm10 vs 0.4–0.6 with lm9, so the reading is more stable.
+- **Thresholds (eyeballed, measured):** tucked 0.28–0.34, pinch (in clutch) 0.65–0.70, open ~1.0, so `T_ON = 0.4`, `T_OFF = 0.6` (both in the gap; 0.55 would centre better).
+- **Mode is latched:** decided once when the clutch engages (tucked → SCROLL, else ZOOM) and held until clutch release. A single glitch frame can't flip the mode or wipe `ref`.
+- **Fixed bug:** `wrist_pinky_dist` returned `True` instead of `palm_len`, so ratios were raw metres / 1. Zoom was unaffected because `ratio/ref` cancels the scale.
+
+### Rejected
+- `T_ON = 0.25`: below the tucked range, so it would never trigger.
+- `T_OFF = 0.7`: the pinch (0.65–0.70) can't exceed it, so going tucked → pinch gets stuck in SCROLL.
+- Re-checking the mode every frame: a one-frame glitch flips the mode, resets the scroll `ref`, and the scroll stutters.
+
+### Concepts to understand
+- Ratio vs difference: ratio needs a true zero (pinch distance); y has an arbitrary zero (window edge), so use a difference / palm_len.
+- `is_curled` fails for the thumb: it folds sideways across the palm, so tip-to-wrist barely changes.
+- **Hysteresis** (two thresholds) filters by *value*; the 0.3 s hold filters by *time*.
+- Measure every confusable pose before picking a threshold. The real risk was the zoom pinch, not the fist.
+- With a latch, only `T_ON` matters (checked once at engage). Order matters: tuck the thumb *before* clutching.
+
+### Next tasks
+- [ ] Commit: palm_len fix, then thumb readout + thresholds (`git add -p`). *Done when:* `git log` shows both commits.
+- [ ] Rename `middle_knuckle` → `middle_pip`; add the measured ranges as a comment above `T_ON`/`T_OFF`. *Done when:* the comment states all three ranges.
+- [ ] Implement the latch: on the clutch-engage frame, set `mode` from `thumb_ratio < T_ON`; clear on release. *Done when:* the overlay shows SCROLL/ZOOM correctly and doesn't flip while you move your hand.
+- [ ] Separate refs per mode (pinch ratio for ZOOM, hand y for SCROLL). *Done when:* switching modes via re-clutch never reuses the other mode's ref.
+- [ ] Step 4: decide stepped vs joystick scroll, then implement.
+
+### Open questions
+- `ctrl` + `"+"` vs `"="` for zoom-in hotkey.
+- `T_OFF` 0.6 vs 0.55.
+- Is "tuck first, then clutch" natural, or does the latch need a short settle window (N stable frames) at engage?
