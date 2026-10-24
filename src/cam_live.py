@@ -5,6 +5,20 @@ import math
 import pyautogui
 
 # HELPER FUNCTIONS
+
+def wrist_pinky_dist(landmarks):
+
+    wrist = (landmarks[0].x, landmarks[0].y, landmarks[0].z)
+    bottom_pinky = (landmarks[17].x, landmarks[17].y, landmarks[17].z)
+
+    palm_len = math.dist(wrist, bottom_pinky)
+
+    if palm_len < 0.02:
+        return None
+    else:
+        return palm_len
+
+
 def pinch_ratio_3d(landmarks):
     """Ratio between distance of tip of index and tip of thumb
 
@@ -17,16 +31,25 @@ def pinch_ratio_3d(landmarks):
     thumb = (landmarks[4].x, landmarks[4].y, landmarks[4].z)
     index = (landmarks[8].x, landmarks[8].y, landmarks[8].z)
 
-    wrist = (landmarks[0].x, landmarks[0].y, landmarks[0].z)
-    bottom_pinky = (landmarks[17].x, landmarks[17].y, landmarks[17].z)
+    palm_len = wrist_pinky_dist(landmarks)
 
-    palm_len = math.dist(wrist, bottom_pinky)
-
-    if palm_len < 0.02:
-        return None
-    else:
+    if palm_len:
         pinch_dist = math.dist(thumb, index)
         return pinch_dist/palm_len
+    else:
+        return None
+
+def scroll_ratio_3d(landmarks):
+    thumb = (landmarks[4].x, landmarks[4].y, landmarks[4].z)
+    middle_knuckle = (landmarks[10].x, landmarks[10].y, landmarks[10].z)
+
+    palm_len =  wrist_pinky_dist(landmarks)
+
+    if palm_len:
+        scroll_dist = math.dist(thumb, middle_knuckle)
+        return scroll_dist/palm_len
+    else:
+        return None
 
 def is_curled(landmarks, tip, knuckle):
     """Check finger is curled
@@ -86,6 +109,8 @@ ref = None
 ZOOM_IN_STEP = 1.25
 ZOOM_OUT_STEP = 1/ZOOM_IN_STEP
 ACTION_SHOW_S = 0.3
+T_ON = 0.4
+T_OFF = 0.55
 action = None
 action_time = None
 
@@ -143,8 +168,13 @@ with hand_landmarker.create_from_options(options) as landmarker:
 
             # calculats dist from bottom pinky to wrist and pink distance from index to thumb
             ratio = pinch_ratio_3d(hand_landmarker_result.hand_world_landmarks[0])
+            scroll_ratio = scroll_ratio_3d(hand_landmarker_result.hand_world_landmarks[0]) 
 
             if ratio is not None:
+                each_frame["ratio"] = f"{ratio:.2f}"
+                each_frame["thumb_ratio"] = f"{scroll_ratio:.2f}"
+                
+
                 if clutch_on and ref is None:
                     ref = ratio
                 elif not clutch_on:
@@ -157,16 +187,16 @@ with hand_landmarker.create_from_options(options) as landmarker:
                         ref = ratio
                         action = "ZOOM IN"
                         action_time = now
-                        pyautogui.hotkey("ctrl", "+")
+                        # pyautogui.hotkey("ctrl", "+")
                     elif change < ZOOM_OUT_STEP:
                         ref = ratio
                         action = "ZOOM OUT"
                         action_time = now
-                        pyautogui.hotkey("ctrl", "-")
+                        # pyautogui.hotkey("ctrl", "-")
                     
                     each_frame["change"] = f"{change:.2f}"
-            cv2.putText(flipped_frame, f"ratio: {ratio}", (200, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))  
             
+
             cv2.line(flipped_frame, (int(thumb_x), int(thumb_y)), (int(index_x), int(index_y)), (255, 0, 0), 2)
         else:
             clutch_on = False
